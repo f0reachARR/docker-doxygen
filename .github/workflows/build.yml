@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  release:
+    types:
+      - published
+
+env:
+  IMAGE: ghcr.io/f0reacharr/docker-doxygen
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.base_ref }}
+      - name: Set env
+        run: |
+          if [ "${{ github.event_name }}" = 'release' ]; then
+              echo TAG_NAME=${IMAGE}:${{ github.event.release.tag_name }},${IMAGE}:latest >> ${GITHUB_ENV}
+          else
+              echo TAG_NAME=${IMAGE}:latest >> ${GITHUB_ENV}
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          builder: ${{ steps.buildx.outputs.name }}
+          tags: ${{ env.TAG_NAME }}
+          platforms: linux/amd64

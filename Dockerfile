@@ -1,10 +1,9 @@
-FROM ubuntu:20.04
-MAINTAINER mps299792458@gmail.com
+FROM ubuntu:22.04
+LABEL maintainer=f0reach@f0reach.me
 
 RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    doxygen graphviz git \
- && rm -rf /var/lib/apt/lists/*
+   && DEBIAN_FRONTEND=noninteractive apt-get install -y doxygen graphviz git \
+   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
 VOLUME ["/data"]
